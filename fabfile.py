@@ -7,12 +7,12 @@ import os, re
 from datetime import datetime
 from fabric.api import *
 
-from config import digolds_service_path, group, user
+from config import digolds_service_path, group, user, key_filename, ips, login_user
 
-env.user = 'root'
+env.user = login_user
 env.sudo_user = 'root'
-env.hosts = ['81.69.219.187']
-env.key_filename = "~/Downloads/abc.pem"
+env.hosts = ips
+env.key_filename = key_filename
 
 _TAR_FILE = 'dist-digolds.tar.gz'
 
