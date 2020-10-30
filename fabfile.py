@@ -68,6 +68,6 @@ def deploy():
         sudo('chown www-data:www-data www')
         sudo('chown -R www-data:www-data %s' % newdir)
     with settings(warn_only=True):
-        sudo(f'supervisorctl stop -c {_REMOTE_BASE_DIR}/{newdir}/gunicorn.conf')
-        sudo(f'supervisorctl start -c {_REMOTE_BASE_DIR}/{newdir}/gunicorn.conf')
-        #sudo('/etc/init.d/nginx reload')
+        run(f'supervisorctl -c {_REMOTE_BASE_DIR}/www/gunicorn.conf stop gunicorn')
+        run(f'supervisorctl -c {_REMOTE_BASE_DIR}/www/gunicorn.conf start gunicorn')
+        run('systemctl restart nginx')
