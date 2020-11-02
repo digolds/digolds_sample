@@ -1,0 +1,59 @@
+{% extends '__base__.html' %}
+{% block title %}Sign in{% endblock %}
+
+{% block beforehead %}
+<script src="{{{{static_file_prefix}}}}/js/md5.js"></script>
+<script type="text/javascript">
+    function submit(){
+        $.post(
+            "/api/v1/sign-in",
+            { 
+                user_name: document.getElementById("user_name").value,
+                md5_password: CryptoJS.MD5(document.getElementById("password").value).toString()
+            },
+            function( data ) {
+                if (data.passed == 1) {
+                    window.location.assign("/views/blogs");
+                }
+                else {
+                    UIkit.notification('Invalid password!');
+                }
+            },
+            "json");
+    }
+    $(function(){
+        $("form").on('submit', function (e) {
+            submit();
+            e.preventDefault();
+        });
+    })
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class='uk-container uk-container-small'>
+    <div class="uk-flex uk-flex-center uk-position-center">
+        <form>
+            <div class="uk-margin">
+                <div class="uk-inline">
+                    <a class="uk-form-icon" href="#" uk-icon="icon: user"></a>
+                    <input id="user_name" class="uk-input" type="text">
+                </div>
+            </div>
+        
+            <div class="uk-margin">
+                <div class="uk-inline">
+                    <a class="uk-form-icon" href="#" uk-icon="icon: lock"></a>
+                    <input id="password" class="uk-input" type="password">
+                </div>
+            </div>
+
+            <div class="uk-margin">
+                <div class="uk-inline">
+                    <input class="uk-button uk-button-primary" type="submit" value="Submit">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
