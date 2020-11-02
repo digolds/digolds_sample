@@ -1,0 +1,38 @@
+{% extends '__base__.html' %}
+{% block title %}Articles-slz{% endblock %}
+
+{% block beforehead %}
+<script>
+    function next(dir){
+        var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
+        var next_page_no = current_page_no + dir;
+        window.location.assign("/views/blogs?"+"current_page_no="+next_page_no.toString());
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class='uk-container uk-container-small uk-padding'>
+    <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+        <div>
+            <ul class="uk-iconnav uk-flex-center">
+                <li><a href="/" uk-icon="icon: reply"></a></li>
+                <li><span>Total: {{{{number_of_total_pages}}}} pages</span></li>
+                <li><a onclick="next(-1)" uk-icon="icon: chevron-left"></a></li>
+                <li><span id="current_page_no">{{{{current_page_no}}}}</span></li>
+                <li><a onclick="next(1)" uk-icon="icon: chevron-right"></a></li>
+            </ul>
+        </div>
+        {% for a in template_blogs %}
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                <h3 class="uk-card-title">{{{{a.title}}}}</h3>
+                <p>{{{{a.description}}}}</p>
+                <a href="{{{{'/views/article/' + a.id|string}}}}" class="uk-text-uppercase">Keep Reading</a>
+                <p class="uk-text-right">Created by <span class="uk-text-bold">{{{{a.author_name}}}}</span>, at {{{{a.created_date}}}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

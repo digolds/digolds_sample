@@ -1,0 +1,38 @@
+{% extends '__base__.html' %}
+{% block title %}Articles-slz{% endblock %}
+
+{% block beforehead %}
+<script>
+    function next(dir){
+        var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
+        var next_page_no = current_page_no + dir;
+        window.location.assign("/views/blogs?"+"current_page_no="+next_page_no.toString());
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class='uk-container uk-container-small uk-padding'>
+    <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                {{{{article_content|safe}}}}
+            </div>
+        </div>
+        <div>
+            <ul class="uk-iconnav uk-flex-center">
+                <li><a href="/views/blogs" uk-icon="icon: reply"></a></li>
+                {% if newer_article %}
+                <li><a href="/views/article/{{{{newer_article.id}}}}">{{{{newer_article.title}}}}</a></li>
+                <li><a href="/views/article/{{{{newer_article.id}}}}" uk-icon="icon: chevron-left"></a></li>
+                {% endif %}
+                <li><span class="uk-text-bold uk-text-large">{{{{article.title}}}}</span></li>
+                {% if older_article %}
+                <li><a href="/views/article/{{{{older_article.id}}}}" uk-icon="icon: chevron-right"></a></li>
+                <li><a href="/views/article/{{{{older_article.id}}}}">{{{{older_article.title}}}}</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
