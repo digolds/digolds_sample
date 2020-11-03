@@ -29,7 +29,7 @@
                 <h3 class="uk-card-title">{{{{a.title}}}}</h3>
                 <p>{{{{a.description}}}}</p>
                 <a href="{{{{'/views/article/' + a.id|string}}}}" class="uk-text-uppercase">Keep Reading</a>
-                <p class="uk-text-right">Created by <span class="uk-text-bold">{{{{a.author_name}}}}</span>, at {{{{a.created_date}}}}</p>
+                <p class="uk-text-right">Created by <span class="uk-text-bold">{{{{a.author_name}}}}</span>, at {{{{a.created_date|datetime}}}}</p>
             </div>
         </div>
         {% endfor %}
