@@ -1,6 +1,8 @@
 import time
 import copy
 
+from model.articles_content import internet_content, internet_description, internet_title
+
 articles = dict()
 '''
 an article structure
@@ -95,9 +97,9 @@ def get_near_articles(id):
 
 def _init_test_data():
     article_param = {
-        'title':'What is digwebs',
-        'description':'A tiny web framework called digwebs which is developed by Python.',
-        'markdown_content':'# How to develop web app by digwebs!',
+        'title':internet_title,
+        'description':internet_description,
+        'markdown_content':internet_content,
         'created_date':int(time.time()),
         'author_name':'slz'
     }
