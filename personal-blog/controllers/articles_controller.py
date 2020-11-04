@@ -70,14 +70,20 @@ def handle_modify():
     title = i.get('title',"").strip()
     description = i.get('description',"").strip()
     markdown_content = i.get('markdown_content',"").strip()
-    if real_id:
-        real_id = int(real_id)
-        article = update_single_article(id=real_id,title=title,description=description,markdown_content=markdown_content)
-        return dict(successed=1,id=real_id)
-    else:
-        new_article = add_article(title=title,
-        description=description,
-        markdown_content=markdown_content,
-        created_date=time.time(),
-        author_name=ctx.request.user_name)
-        return dict(successed=1,id=new_article['id'])
+    real_id = int(real_id)
+    article = update_single_article(id=real_id,title=title,description=description,markdown_content=markdown_content)
+    return dict(successed=1,id=real_id)
+
+@current_app.api
+@current_app.post('/manage/api/v1/article')
+def handle_add():
+    i = ctx.request.input()
+    title = i.get('title',"").strip()
+    description = i.get('description',"").strip()
+    markdown_content = i.get('markdown_content',"").strip()
+    new_article = add_article(title=title,
+    description=description,
+    markdown_content=markdown_content,
+    created_date=time.time(),
+    author_name=ctx.request.user_name)
+    return dict(successed=1,id=new_article['id'])

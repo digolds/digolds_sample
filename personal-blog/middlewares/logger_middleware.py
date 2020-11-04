@@ -30,6 +30,9 @@ def log_record(ctx, next):
     ctx.request.user_name = user_name
     if not user_name and ctx.request.path_info.startswith('/manage/'):
         raise seeother('/')
+    
+    if user_name and ctx.request.path_info == '/views/sign-in':
+        raise seeother('/')
     return next()
 
 def logger_middleware():
