@@ -65,14 +65,10 @@ def update_single_article(**kwargs):
     title = kwargs.get("title")
     description = kwargs.get("description")
     markdown_content = kwargs.get("markdown_content")
-    created_date = kwargs.get("created_date")
-    author_name = kwargs.get("author_name")
     a = articles[kwargs.get("id")]
     a["title"] = title
     a["description"] = description
     a["markdown_content"] = markdown_content
-    a["created_date"] = created_date
-    a["author_name"] = author_name
     return a
 
 def get_near_articles(id):
