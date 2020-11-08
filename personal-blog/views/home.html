@@ -1,0 +1,22 @@
+{% extends '__base__.html' %}
+{% block title %}{{{{name}}}}'s place{% endblock %}
+{% block beforehead %}{% endblock %}
+{% block content %}
+<div id="main" class='uk-container uk-container-small'>
+    <div class="uk-flex uk-flex-center uk-position-center">
+        <a href="https://www.digolds.cn" target="_blank">
+            <img src="/static/images/digolds.png">
+        </a>
+        <h1> {{{{name}}}}'s personal blog!</h1>
+        <div class="uk-flex uk-flex-center">
+            <p>Powered by <a href="https://github.com/digolds/digwebs" target="_blank">digwebs</a></p>
+        </div>
+        <div class="uk-flex uk-flex-center">
+            <ul class="uk-iconnav">
+                <li><a href="/views/blogs" uk-icon="icon: copy" title="Blog"></a></li>
+                <li><a href="/views/sign-in" uk-icon="icon: sign-in" title="Sign in"></a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

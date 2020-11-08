@@ -1,0 +1,74 @@
+{% extends '__base__.html' %}
+{% block title %}Articles-slz{% endblock %}
+
+{% block beforehead %}
+<script>
+    function next(dir){
+        var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
+        var next_page_no = current_page_no + dir;
+        window.location.assign("/views/blogs?"+"current_page_no="+next_page_no.toString());
+    }
+    function delete_a(id){
+        UIkit.modal.confirm("Delete operation can't be reversed, are you still need to delete the article?").then(function() {
+            $.ajax(
+                {
+                    url: "/manage/api/v1/article",
+                    method: "DELETE",
+                    data: {
+                        id: id,
+                    },
+                    success: function (data) {
+                        if (data.successed) {
+                            var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
+                            window.location.assign("/views/blogs?" + "current_page_no=" + current_page_no.toString());
+                        }
+                        else {
+                            UIkit.notification('Delete failed!');
+                        }
+                    }
+                }
+            );
+        }, function () {
+            console.log('Rejected.');
+        });
+    }
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class='uk-container uk-container-small uk-padding'>
+    <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+        <div>
+            <ul class="uk-iconnav uk-flex-center">
+                <li><a href="/" uk-icon="icon: reply"></a></li>
+                <li><span>Total: {{{{number_of_total_pages}}}} pages</span></li>
+                <li><a onclick="next(-1)" uk-icon="icon: chevron-left"></a></li>
+                <li><span id="current_page_no">{{{{current_page_no}}}}</span></li>
+                <li><a onclick="next(1)" uk-icon="icon: chevron-right"></a></li>
+                {% if ctx.request.user_name %}
+                <li><a uk-icon="icon: user"></a></li>
+                <li><span>{{{{ctx.request.user_name}}}}</span></li>
+                <li><a href="/manage/views/article" uk-icon="icon: file-edit"></a></li>
+                {% endif %}
+            </ul>
+        </div>
+        {% for a in template_blogs %}
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                {% if ctx.request.user_name %}
+                <div class="uk-card-badge">
+                    <a href="/manage/views/article?id={{{{a.id}}}}" uk-icon="icon: pencil"></a>
+                    <a onclick="delete_a({{{{a.id}}}})" uk-icon="icon: close"></a>
+                </div>
+                {% endif %}
+                <h3 class="uk-card-title">{{{{a.title}}}}</h3>
+                <p>{{{{a.description}}}}</p>
+                <a href="{{{{'/views/article/' + a.id|string}}}}" class="uk-text-uppercase">Keep Reading</a>
+                <p class="uk-text-right">Created by <span class="uk-text-bold">{{{{a.author_name}}}}</span>, at {{{{a.created_date|datetime}}}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

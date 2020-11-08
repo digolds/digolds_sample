@@ -1,0 +1,63 @@
+{% extends '__base__.html' %}
+{% block title %}Editing{% endblock %}
+
+{% block beforehead %}
+<script>
+    function submit(){
+        $.ajax(
+            {
+                url: "/manage/api/v1/article",
+                method: "{{{{article.id}}}}" === "" ? "POST" : "PUT",
+                data: {
+                    id: "{{{{article.id}}}}",
+                    title:document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    markdown_content: document.getElementById('markdown_content').value
+                },
+                success: function (data) {
+                    if (data.successed) {
+                        window.location.assign("/views/article/" + data.id.toString());
+                    }
+                    else {
+                        UIkit.notification('Modified failed!');
+                    }
+                }
+            }
+        );
+    }
+    $(function(){
+        $("form").on('submit', function (e) {
+            submit();
+            e.preventDefault();
+        });
+    })
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class='uk-container uk-container-small uk-padding'>
+    <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
+        <div>
+            <div class="uk-card uk-card-default uk-card-body">
+                <form>
+                    <fieldset class="uk-fieldset">
+                        <div class="uk-margin">
+                            <input id="title" class="uk-input" type="text" placeholder="Article title" value="{{{{article.title}}}}">
+                        </div>
+                        <div class="uk-margin">
+                            <input id="description" class="uk-input" type="text" placeholder="Article description" value="{{{{article.description}}}}">
+                        </div>
+                        <div class="uk-margin">
+                            <textarea id="markdown_content" class="uk-textarea" rows="25" placeholder="Article content">{{{{article.markdown_content}}}}</textarea>
+                        </div>
+                        <div class="uk-margin">
+                            <a class="uk-button uk-button-default" href="/views/blogs">Cancel</a>
+                            <input class="uk-button uk-button-primary" type="submit" value="Submit">
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
