@@ -1,11 +1,13 @@
 import time
 import copy
 import logging
+from datetime import datetime, timedelta
 
 from articles_content import internet_content, internet_description, internet_title
 
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key
 
 articles = dict()
 '''
@@ -37,21 +39,34 @@ def _generate_article(**kwargs):
     }
     return a
 
-def list_articles():
-    simple_articles = []
-    simple_articles = list(articles.items())
-    def sort_by_created_date(e):
-        return e[1]['created_date']
-    simple_articles.sort(reverse=True, key=sort_by_created_date)
-    return list(map(lambda x: x[1], simple_articles))
+def get_time_stamp(last_hours):
+    last_x_hours_date_time = datetime.now() - timedelta(hours = last_hours)
+    return int(last_x_hours_date_time.timestamp())
 
-def list_simple_articles():
-    detail_articles = list_articles()
+def list_simple_articles(go_next, start_time):
+    db = _dynamodb_service()
+    table = db.Table('personal-articles-table')
+    if go_next:
+        sort_key_cond = Key('CreatedDateTime').lt(start_time)
+    else:
+        sort_key_cond = Key('CreatedDateTime').gt(start_time)
+
+    response = table.query(
+        IndexName='ContentGlobalIndex',
+        KeyConditionExpression=Key('ContentType').eq(0) & sort_key_cond,
+        Limit = 2,
+        ScanIndexForward = not go_next
+    )
+    print(response)
     def filter_markdown_content(x):
-        a = copy.deepcopy(x)
-        del a['markdown_content']
+        a = {}
+        a['title'] = x['Title']
+        a['description'] = x['Description']
+        a['created_date'] = int(x['CreatedDateTime'])
+        a['author_name'] = x['AuthorName']
+        a['id'] = int(x['Id'])
         return a
-    return list(map(filter_markdown_content, detail_articles))
+    return list(map(filter_markdown_content, response['Items']))
 
 dynamodb = None
 def _dynamodb_service():
@@ -68,12 +83,13 @@ def add_article(**kwargs):
     try:
         response = table.put_item(
             Item={
-                'id': a.get("id"),
-                'created_date': a.get("created_date"),
-                'title': a.get("title"),
-                'description': a.get("description"),
-                'markdown_content': a.get("markdown_content"),
-                'author_name': a.get("author_name"),
+                'Id': a.get("id"),
+                'ContentType': 0,
+                'CreatedDateTime': a.get("created_date"),
+                'Title': a.get("title"),
+                'Description': a.get("description"),
+                'MarkdownContent': a.get("markdown_content"),
+                'AuthorName': a.get("author_name"),
             }
         )
         logging.info(response)
@@ -83,14 +99,13 @@ def add_article(**kwargs):
     else:
         return a
 
-def delete_article(id, created_date):
+def delete_article(id):
     db = _dynamodb_service()
     table = db.Table('personal-articles-table')
     try:
         response = table.delete_item(
             Key={
-                'id': id,
-                'created_date': created_date
+                'Id': id
             }
         )
     except ClientError as e:
@@ -100,12 +115,12 @@ def delete_article(id, created_date):
         logging.info(response)
         return response
 
-def get_single_article(id, created_date):
+def get_single_article(id):
     db = _dynamodb_service()
     table = db.Table('personal-articles-table')
 
     try:
-        response = table.get_item(Key={'id': id, 'created_date': created_date})
+        response = table.get_item(Key={'Id': id})
         logging.info(response)
     except ClientError as e:
         logging.error(e.response['Error']['Message'])
@@ -117,10 +132,9 @@ def update_single_article(**kwargs):
     table = db.Table('personal-articles-table')
     response = table.update_item(
         Key={
-            'id': kwargs.get("id"),
-            'created_date': kwargs.get('created_date')
+            'Id': kwargs.get("id")
         },
-        UpdateExpression="set title=:t, description=:d, markdown_content=:m",
+        UpdateExpression="set Title=:t, Description=:d, MarkdownContent=:m",
         ExpressionAttributeValues={
             ':t': kwargs.get("title"),
             ':d': kwargs.get("description"),
@@ -188,30 +202,37 @@ if __name__ == '__main__':
     # test initialization
     _init_test_data()
     assert(len(articles) == 3)
-    
-    # test sorted detail articles
-    sorted_articles = list_articles()
-    assert(len(sorted_articles) == 3)
-    assert(sorted_articles[0]["created_date"] > sorted_articles[1]["created_date"])
-    
-    # test sorted simple articles
-    sorted_simple_articles = list_simple_articles()
-    assert(len(sorted_simple_articles) == 3)
-    assert(sorted_simple_articles[0]["created_date"] > sorted_simple_articles[1]["created_date"])
-    assert('markdown_content' not in sorted_simple_articles)
 
     # test add an article
+    '''
     new_article = add_article(title="Where to learn programming?",
         description="Head to digolds.cn, it's a great place to share your idea!",
         markdown_content="# Hello Digolds!",
-        created_date=int(time.time()) + 3,
+        created_date=get_time_stamp(12),
         author_name='digolds')
     articles[new_article['id']] = new_article
-    assert(len(articles) == 4)
+    new_article = add_article(title="Where to learn programming?",
+        description="Head to digolds.cn, it's a great place to share your idea!",
+        markdown_content="# Hello Digolds!",
+        created_date=get_time_stamp(12 + 1),
+        author_name='digolds')
+    articles[new_article['id']] = new_article
+    new_article = add_article(title="Where to learn programming?",
+        description="Head to digolds.cn, it's a great place to share your idea!",
+        markdown_content="# Hello Digolds!",
+        created_date=get_time_stamp(12 + 2),
+        author_name='digolds')
+    articles[new_article['id']] = new_article
+    '''
+    # assert(len(articles) == 4)
+
+    # test sorted simple articles
+    sorted_simple_articles = list_simple_articles(True, get_time_stamp(0))
+    assert(len(sorted_simple_articles) == 1)
 
     # test get an article
-    new_article_copy = get_single_article(new_article['id'], new_article['created_date'])
-    assert(new_article_copy['created_date'] == new_article['created_date'])
+    new_article_copy = get_single_article(new_article['id'])
+    assert(new_article_copy['CreatedDateTime'] == new_article['created_date'])
     
     # test update an article
     changed_title = "Where to learn programming and design idea?"
@@ -223,8 +244,8 @@ if __name__ == '__main__':
         created_date=new_article['created_date'],
         author_name=new_article['author_name']
     )
-    assert(updated_article['title'] == changed_title)
+    assert(updated_article['Title'] == changed_title)
 
     # test delete an article
-    deleted_article = delete_article(new_article['id'], new_article['created_date'])
-    assert(len(articles) == 4)
+    #deleted_article = delete_article(new_article['id'])
+    #assert(len(articles) == 4)
