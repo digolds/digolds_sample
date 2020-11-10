@@ -3,7 +3,7 @@ import copy
 import logging
 from datetime import datetime, timedelta
 
-from articles_content import internet_content, internet_description, internet_title
+from model.articles_content import internet_content, internet_description, internet_title
 
 import boto3
 from botocore.exceptions import ClientError
@@ -43,7 +43,7 @@ def get_time_stamp(last_hours):
     last_x_hours_date_time = datetime.now() - timedelta(hours = last_hours)
     return int(last_x_hours_date_time.timestamp())
 
-def list_simple_articles(go_next, start_time):
+def list_simple_articles(go_next, start_time, articles_per_page):
     db = _dynamodb_service()
     table = db.Table('personal-articles-table')
     if go_next:
@@ -54,10 +54,9 @@ def list_simple_articles(go_next, start_time):
     response = table.query(
         IndexName='ContentGlobalIndex',
         KeyConditionExpression=Key('ContentType').eq(0) & sort_key_cond,
-        Limit = 2,
+        Limit = articles_per_page,
         ScanIndexForward = not go_next
     )
-    print(response)
     def filter_markdown_content(x):
         a = {}
         a['title'] = x['Title']
@@ -66,7 +65,12 @@ def list_simple_articles(go_next, start_time):
         a['author_name'] = x['AuthorName']
         a['id'] = int(x['Id'])
         return a
-    return list(map(filter_markdown_content, response['Items']))
+    if go_next:
+        return list(map(filter_markdown_content, response['Items']))
+    else:
+        tmp = list(map(filter_markdown_content, response['Items']))
+        tmp.sort(reverse=True, key=lambda x: x['created_date'])
+        return tmp
 
 dynamodb = None
 def _dynamodb_service():
@@ -145,64 +149,18 @@ def update_single_article(**kwargs):
     logging.info(response)
     return response['Attributes']
 
-def get_near_articles(id):
-    articles = list_articles()
-    newer_index = -1
-    older_index = -1
-    found_index = -1
-    for idx, a in enumerate(articles):
-        if a['id'] == id:
-            found_index = idx
-            break
-    newer_index = found_index - 1
-    older_index = found_index + 1
-    newer_article = None
-    if newer_index > -1:
-        newer_article = articles[newer_index]
-    
+def get_near_articles(created_date):
+    olders = list_simple_articles(True, created_date, 1)
+    newers = list_simple_articles(False, created_date, 1)
     older_article = None
-    if older_index < len(articles):
-        older_article = articles[older_index]
+    if olders:
+        older_article = olders[0]
+    newer_article = None
+    if newers:
+        newer_article = newers[0]
     return (newer_article, older_article)
 
-def _init_test_data():
-    article_param = {
-        'title':internet_title,
-        'description':internet_description,
-        'markdown_content':internet_content,
-        'created_date':int(time.time()),
-        'author_name':'slz'
-    }
-    
-    a = _generate_article(**article_param)
-    articles[a['id']] = a
-    
-    a = _generate_article(
-        title="Why you should use digwebs?",
-        description="Digwebs is a Python web framework, which you can use to accelerate the development process of building a web service.",
-        markdown_content="# Why you should use digwebs?",
-        created_date=int(time.time()) + 1,
-        author_name='slz'
-    )
-    articles[a['id']] = a
-
-    a = _generate_article(
-        title="Where to learn programming?",
-        description="Head to digolds.cn, it's a great place to share your idea!",
-        markdown_content="# Hello Digolds!",
-        created_date=int(time.time()) + 2,
-        author_name='digolds'
-    )
-    articles[a['id']] = a
-    return articles
-
-#_init_test_data()
-
 if __name__ == '__main__':
-    # test initialization
-    _init_test_data()
-    assert(len(articles) == 3)
-
     # test add an article
     '''
     new_article = add_article(title="Where to learn programming?",
@@ -224,10 +182,11 @@ if __name__ == '__main__':
         author_name='digolds')
     articles[new_article['id']] = new_article
     '''
-    # assert(len(articles) == 4)
 
     # test sorted simple articles
-    sorted_simple_articles = list_simple_articles(True, get_time_stamp(0))
+    # sorted_simple_articles = list_simple_articles(True, get_time_stamp(0), 2)
+    sorted_simple_articles = list_simple_articles(False, get_time_stamp(24 + 3), 2)
+    print(sorted_simple_articles)
     assert(len(sorted_simple_articles) == 1)
 
     # test get an article

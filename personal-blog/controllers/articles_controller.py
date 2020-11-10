@@ -9,26 +9,23 @@ import time
 
 from digwebs.web import current_app, ctx
 import markdown2
-from model.in_memory_db import list_simple_articles, get_single_article, get_near_articles, delete_article, update_single_article, add_article
+from model.in_memory_db import get_time_stamp, list_simple_articles, get_single_article, get_near_articles, delete_article, update_single_article, add_article
 
 @current_app.view('blogs.html')
 @current_app.get('/views/blogs')
 def blogs():
     number_of_articles_per_page = 2
     i = ctx.request.input()
-    current_page_no = int(i.get('current_page_no', '1').strip())
-    total_articles = list_simple_articles()
-    number_of_total_articles = len(total_articles)
-    number_of_total_pages = int(number_of_total_articles / number_of_articles_per_page) + (number_of_total_articles % number_of_articles_per_page)
-    if current_page_no < 1:
+    r = i.get('current_page_no', '')
+    if not r:
+        next_articles = list_simple_articles(True, get_time_stamp(0), number_of_articles_per_page)
         current_page_no = 1
-    elif current_page_no > number_of_total_pages:
-        current_page_no = number_of_total_pages
-    start_index = (current_page_no - 1) * number_of_articles_per_page
-    end_index = start_index + number_of_articles_per_page
-    if end_index > number_of_total_articles:
-        end_index = start_index + (number_of_total_articles % number_of_articles_per_page)
-    return dict(template_blogs=total_articles[start_index:end_index], number_of_total_pages = number_of_total_pages, current_page_no = current_page_no)
+    else:
+        current_page_no = int(i.get('current_page_no').strip())
+        is_next = int(i.get('is_next', '1').strip()) == 1
+        created_timestamp = int(i.get('created_timestamp').strip())
+        next_articles = list_simple_articles(is_next, created_timestamp, number_of_articles_per_page)
+    return dict(template_blogs=next_articles, number_of_total_pages = 0, current_page_no = current_page_no)
 
 @current_app.view('single_article.html')
 @current_app.get('/views/article/:id')
