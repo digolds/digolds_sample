@@ -9,7 +9,8 @@ import time
 
 from digwebs.web import current_app, ctx
 import markdown2
-from model.in_memory_db import list_simple_articles, get_single_article, get_near_articles, delete_article, update_single_article, add_article
+from model.in_memory_db import get_time_stamp, list_simple_articles, get_single_article, get_near_articles, delete_article, update_single_article, add_article
+from digwebs.errors import seeother
 
 @current_app.view('blogs.html')
 @current_app.get('/views/blogs')
@@ -17,27 +18,24 @@ def blogs():
     number_of_articles_per_page = 2
     i = ctx.request.input()
     current_page_no = int(i.get('current_page_no', '1').strip())
-    total_articles = list_simple_articles()
-    number_of_total_articles = len(total_articles)
-    number_of_total_pages = int(number_of_total_articles / number_of_articles_per_page) + (number_of_total_articles % number_of_articles_per_page)
-    if current_page_no < 1:
-        current_page_no = 1
-    elif current_page_no > number_of_total_pages:
-        current_page_no = number_of_total_pages
-    start_index = (current_page_no - 1) * number_of_articles_per_page
-    end_index = start_index + number_of_articles_per_page
-    if end_index > number_of_total_articles:
-        end_index = start_index + (number_of_total_articles % number_of_articles_per_page)
-    return dict(template_blogs=total_articles[start_index:end_index], number_of_total_pages = number_of_total_pages, current_page_no = current_page_no)
+    is_next = int(i.get('is_next', '1').strip()) == 1
+    created_timestamp = int(i.get('created_timestamp', str(get_time_stamp(0))).strip())
+    next_articles = list_simple_articles(is_next, created_timestamp, number_of_articles_per_page)
+    if not next_articles:
+        raise seeother('/views/blogs')
+    return dict(template_blogs=next_articles, number_of_total_pages = 0, current_page_no = current_page_no)
 
 @current_app.view('single_article.html')
 @current_app.get('/views/article/:id')
 def view_article(id):
     real_id = int(id)
     article = get_single_article(real_id)
-    near_articles = get_near_articles(real_id)
+    near_articles = get_near_articles(article['created_date'])
     return dict(
-        article_content = markdown2.markdown(article['markdown_content']),
+        article_content = markdown2.markdown(article['markdown_content'], extras={
+                'fenced-code-blocks':None,
+                'tables' : None
+                }),
         article = article,
         newer_article = near_articles[0],
         older_article = near_articles[1]
@@ -84,6 +82,6 @@ def handle_add():
     new_article = add_article(title=title,
     description=description,
     markdown_content=markdown_content,
-    created_date=time.time(),
+    created_date=int(time.time()),
     author_name=ctx.request.user_name)
     return dict(successed=1,id=new_article['id'])

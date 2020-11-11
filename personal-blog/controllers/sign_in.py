@@ -7,6 +7,7 @@ sign-in controller.
 '''
 import hashlib
 import time
+import os
 
 from digwebs.web import current_app, ctx
 
@@ -17,7 +18,7 @@ def make_signed_cookie(user_name, max_age):
     return '-'.join(L)
 
 def user_login_info():
-    return ('slz', hashlib.md5(b'abc').hexdigest())
+    return (os.getenv('USER_NAME'), hashlib.md5(os.getenv('PASSWORD').encode('utf-8')).hexdigest())
 
 @current_app.view('sign-in.html')
 @current_app.get('/views/sign-in')

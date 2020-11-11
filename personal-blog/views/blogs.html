@@ -6,7 +6,20 @@
     function next(dir){
         var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
         var next_page_no = current_page_no + dir;
-        window.location.assign("/views/blogs?"+"current_page_no="+next_page_no.toString());
+        if(next_page_no < 1) {
+            return;
+        }
+        var article_blocks = document.getElementsByClassName("article_block");
+        if(article_blocks.length > 0) {
+            var created_timestamp = "";
+            if(dir == 1){
+                created_timestamp = article_blocks[article_blocks.length -1].id;
+            }
+            else {
+                created_timestamp = article_blocks[0].id;
+            }
+            window.location.assign("/views/blogs?"+"current_page_no="+next_page_no.toString()+"&is_next="+dir.toString()+"&created_timestamp="+created_timestamp);
+        }
     }
     function delete_a(id){
         UIkit.modal.confirm("Delete operation can't be reversed, are you still need to delete the article?").then(function() {
@@ -54,7 +67,7 @@
             </ul>
         </div>
         {% for a in template_blogs %}
-        <div>
+        <div id="{{{{a.created_date}}}}" class="article_block">
             <div class="uk-card uk-card-default uk-card-body">
                 {% if ctx.request.user_name %}
                 <div class="uk-card-badge">
