@@ -2,20 +2,22 @@
 {% block title %}{{{{article.title}}}}{% endblock %}
 
 {% block beforehead %}
-<script>
-    function next(dir){
-        var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
-        var next_page_no = current_page_no + dir;
-        window.location.assign("/views/blogs?"+"current_page_no="+next_page_no.toString());
+<style>
+    #article_block img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: auto;
     }
-</script>
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/digolds/digresources/css/markdown_highlight.css">
 {% endblock %}
 
 {% block content %}
 <div id="main" class='uk-container uk-container-small uk-padding'>
     <div class="uk-child-width-1-1 uk-grid-small uk-grid-match" uk-grid>
         <div>
-            <div class="uk-card uk-card-default uk-card-body">
+            <div id="article_block" class="uk-card uk-card-default uk-card-body">
                 {{{{article_content|safe}}}}
             </div>
         </div>

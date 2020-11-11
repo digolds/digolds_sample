@@ -128,8 +128,19 @@ def get_single_article(id):
         logging.info(response)
     except ClientError as e:
         logging.error(e.response['Error']['Message'])
+        return {}
     else:
-        return response['Item']
+        if not response['Item']:
+            return {}
+        a = {}
+        x = response['Item']
+        a['title'] = x['Title']
+        a['description'] = x['Description']
+        a['created_date'] = int(x['CreatedDateTime'])
+        a['author_name'] = x['AuthorName']
+        a['id'] = int(x['Id'])
+        a['markdown_content'] = x['MarkdownContent']
+        return a
 
 def update_single_article(**kwargs):
     db = _dynamodb_service()

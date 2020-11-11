@@ -6,6 +6,9 @@
     function next(dir){
         var current_page_no = parseInt(document.getElementById('current_page_no').innerText);
         var next_page_no = current_page_no + dir;
+        if(next_page_no < 1) {
+            return;
+        }
         var article_blocks = document.getElementsByClassName("article_block");
         if(article_blocks.length > 0) {
             var created_timestamp = "";
