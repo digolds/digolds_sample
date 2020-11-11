@@ -1,6 +1,7 @@
 import time
 import copy
 import logging
+import os
 from datetime import datetime, timedelta
 
 from model.articles_content import internet_content, internet_description, internet_title
@@ -9,7 +10,6 @@ import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
-articles = dict()
 '''
 an article structure
 
@@ -45,14 +45,14 @@ def get_time_stamp(last_hours):
 
 def list_simple_articles(go_next, start_time, articles_per_page):
     db = _dynamodb_service()
-    table = db.Table('personal-articles-table')
+    table = db.Table(os.getenv('TABLE_NAME'))
     if go_next:
         sort_key_cond = Key('CreatedDateTime').lt(start_time)
     else:
         sort_key_cond = Key('CreatedDateTime').gt(start_time)
 
     response = table.query(
-        IndexName='ContentGlobalIndex',
+        IndexName=os.getenv('INDEX_NAME'),
         KeyConditionExpression=Key('ContentType').eq(0) & sort_key_cond,
         Limit = articles_per_page,
         ScanIndexForward = not go_next
@@ -82,7 +82,7 @@ def _dynamodb_service():
 def add_article(**kwargs):
     a = _generate_article(**kwargs)
     db = _dynamodb_service()
-    table = db.Table('personal-articles-table')
+    table = db.Table(os.getenv('TABLE_NAME'))
 
     try:
         response = table.put_item(
@@ -105,7 +105,7 @@ def add_article(**kwargs):
 
 def delete_article(id):
     db = _dynamodb_service()
-    table = db.Table('personal-articles-table')
+    table = db.Table(os.getenv('TABLE_NAME'))
     try:
         response = table.delete_item(
             Key={
@@ -121,7 +121,7 @@ def delete_article(id):
 
 def get_single_article(id):
     db = _dynamodb_service()
-    table = db.Table('personal-articles-table')
+    table = db.Table(os.getenv('TABLE_NAME'))
 
     try:
         response = table.get_item(Key={'Id': id})
@@ -144,7 +144,7 @@ def get_single_article(id):
 
 def update_single_article(**kwargs):
     db = _dynamodb_service()
-    table = db.Table('personal-articles-table')
+    table = db.Table(os.getenv('TABLE_NAME'))
     response = table.update_item(
         Key={
             'Id': kwargs.get("id")
