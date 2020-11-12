@@ -4,6 +4,7 @@ export APP_PATH=/srv/digolds
 export UNIX_SOCK=unix:$APP_PATH/www/digolds.sock
 export GROUP=www-data
 export USER=www-data
+export PATH=$PATH:/usr/local/bin
 mkdir $APP_PATH
 groupadd $GROUP
 adduser -g $GROUP $USER
@@ -13,19 +14,17 @@ yum -y install epel-release
 yum -y install wget
 yum -y install nginx
 yum -y install python3
-alias pip=pip3
-alias python=python3
 
 wget https://github.com/digolds/digolds_sample/archive/v0.0.1.tar.gz -P /tmp
 tar xf /tmp/v0.0.1.tar.gz -C $APP_PATH
 ln -s $APP_PATH/digolds_sample-0.0.1/personal-blog $APP_PATH/www
 chown $USER:$GROUP $APP_PATH/www
 chown -R $USER:$GROUP $APP_PATH/digolds_sample-0.0.1/personal-blog
-python -m venv $APP_PATH/digolds_sample-0.0.1
-source $APP_PATH/digolds_sample-0.0.1/bin/activate
-pip install gunicorn
-pip install supervisor
-pip install -r $APP_PATH/digolds_sample-0.0.1/requirements.txt
+#python3 -m venv $APP_PATH/digolds_sample-0.0.1
+#source $APP_PATH/digolds_sample-0.0.1/bin/activate
+pip3 install gunicorn
+pip3 install supervisor
+pip3 install -r $APP_PATH/digolds_sample-0.0.1/requirements.txt
 
 OUTPUT=$(which gunicorn)
 export GUNICORN_BIN_NAME=$OUTPUT
