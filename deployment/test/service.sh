@@ -15,16 +15,16 @@ yum -y install nginx
 yum -y install python3
 alias pip=pip3
 alias python=python3
-yum -y install supervisor
 
 wget https://github.com/digolds/digolds_sample/archive/v0.0.1.tar.gz -P /tmp
 tar xf /tmp/v0.0.1.tar.gz -C $APP_PATH
 ln -s $APP_PATH/digolds_sample-0.0.1/personal-blog $APP_PATH/www
 chown $USER:$GROUP $APP_PATH/www
 chown -R $USER:$GROUP $APP_PATH/digolds_sample-0.0.1/personal-blog
-# python -m venv $APP_PATH/digolds_sample-0.0.1
-# source $APP_PATH/digolds_sample-0.0.1/bin/activate
-# pip install gunicorn
+python -m venv $APP_PATH/digolds_sample-0.0.1
+source $APP_PATH/digolds_sample-0.0.1/bin/activate
+pip install gunicorn
+pip install supervisor
 pip install -r $APP_PATH/digolds_sample-0.0.1/requirements.txt
 
 OUTPUT=$(which gunicorn)
@@ -130,6 +130,7 @@ http {
 echo "$gunicorn_config" > $APP_PATH/www/gunicorn.conf
 echo "$nginx_config" > /etc/nginx/nginx.conf
 
+setenforce Permissive
 supervisord -c $APP_PATH/www/gunicorn.conf
 # supervisorctl -c $APP_PATH/www/gunicorn.conf start gunicorn
-systemctl restart nginx
+systemctl start nginx
