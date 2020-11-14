@@ -21,7 +21,7 @@ def blogs():
     is_next = int(i.get('is_next', '1').strip()) == 1
     created_timestamp = int(i.get('created_timestamp', str(get_time_stamp(0))).strip())
     next_articles = list_simple_articles(is_next, created_timestamp, number_of_articles_per_page)
-    if not next_articles:
+    if i.get('is_next') and not next_articles:
         raise seeother('/views/blogs')
     return dict(template_blogs=next_articles, number_of_total_pages = 0, current_page_no = current_page_no)
 
