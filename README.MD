@@ -1,5 +1,7 @@
 # Provision light blog in 10 minutes
 
+Before your run the following steps, you should first register an AWS account, generate login credentials for Program, and set up development environment at your local computer. You can refer to [here](https://www.digolds.cn/article/001604747946011565fcd033952480394a12368c7417076000) for these routines.
+
 1. Fork this repository, clone it and make sure to check out branch `light-blogs-with-dynamodb`
 2. `cd deployment\nosql`, and run the following commands to provision DynamoDB Service
 
@@ -27,7 +29,7 @@ Outputs:
 alb_dns_name = alb-1-843275519.ap-northeast-1.elb.amazonaws.com
 ```
 
-you can enter your *alb_dns_name* in browser to check the result.
+Wait about 5 minutes, and enter your *alb_dns_name* in browser to check the result.
 
 The environment you just provision is composed of several parts as shown below:
 
